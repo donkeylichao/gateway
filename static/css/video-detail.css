@@ -1,0 +1,24 @@
+﻿body{
+    color: #666;
+    font-size: 14px;
+	line-height: 1;
+}
+#header{width:100%;height:30px;background-color:#ccc;}
+#content{margin:0 auto; }
+#listBox{width:100%;}
+
+/*禁用iphone中的safari的字号自动调整*/
+html{
+	-webkit-text-size-adjust:none;
+}
+
+/*设置图片视频等自适应*/
+img{
+	max-width:100%;
+	height:auto;
+	width:auto9;
+}
+video{
+	width:100%;
+	height:auto;
+}

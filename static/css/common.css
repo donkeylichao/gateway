@@ -1,0 +1,14 @@
+/*当浏览器的可视区域小于1280px*/
+/*视频列表样式*/
+body{ 
+	background: #fdfdfd none repeat scroll 0 0;
+}	
+*{margin:0;padding:0;}
+
+footer {
+    background-color: #222;
+    color: #fff;
+    font-size: 12px;
+    padding: 15px 0;
+    text-align: center;
+}
