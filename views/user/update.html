@@ -20,7 +20,7 @@
 
 {{template "layout/notify.html" .}}
 
-    <form method="post" action="{{urlfor "UserController.Update"}}">
+    <form method="post" action="{{urlfor "UserController.Update"}}?id={{.user.Id}}">
 
         <div class="form-group">
             <label class="col-sm-1 control-label no-padding-right">用户名：</label>
