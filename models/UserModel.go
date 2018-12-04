@@ -48,6 +48,11 @@ func (this *User) ConditionList(page int, fields []string) ([]*User, int64) {
 	pageSize, _ := beego.AppConfig.Int("pageSize")
 	offset := (page - 1) * pageSize
 	query := orm.NewOrm().QueryTable(TableName("user"))
+	if len(fields) > 0 {
+		for i := 0; i<len(fields);i=i+2  {
+			query.Filter(fields[i],fields[i+1])
+		}
+	}
 	count, _ := query.Count()
 	query.Limit(pageSize).Offset(offset).OrderBy("-id").All(&users)
 	return users, count
