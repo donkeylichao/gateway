@@ -37,7 +37,7 @@
         <div class="form-group">
             <label class="col-sm-1 control-label no-padding-right">请求方式：</label>
             <div class="col-sm-11">
-                <input type="text" name="method" class="col-xs-10 col-sm-4" value="{{.url.Method}}"/>
+                <input type="text" name="method" class="col-xs-10 col-sm-4" value="{{.api.Method}}"/>
                 <span class="help-inline col-xs-12 col-sm-7">
 							<span class="middle" style="color:red">*必填*</span>
 						</span>
@@ -49,7 +49,7 @@
         <div class="form-group">
             <label class="col-sm-1 control-label no-padding-right">网关别名：</label>
             <div class="col-sm-11">
-                <input type="text" name="api_alias" class="col-xs-10 col-sm-4" value="{{.url.ApiAlias}}"/>
+                <input type="text" name="api_alias" class="col-xs-10 col-sm-4" value="{{.api.ApiAlias}}"/>
                 <span class="help-inline col-xs-12 col-sm-7">
 							<span class="middle" style="color:red">*必填*</span>
 						</span>
@@ -61,7 +61,7 @@
         <div class="form-group">
             <label class="col-sm-1 control-label no-padding-right">转发地址：</label>
             <div class="col-sm-11">
-                <input type="text" name="api_path" class="col-xs-10 col-sm-4" value="{{.url.ApiPath}}"/>
+                <input type="text" name="api_path" class="col-xs-10 col-sm-4" value="{{.api.ApiPath}}"/>
                 <span class="help-inline col-xs-12 col-sm-7">
 							<span class="middle" style="color:red">*必填*</span>
 						</span>
@@ -73,7 +73,7 @@
         <div class="form-group">
             <label class="col-sm-1 control-label no-padding-right">请求地址：</label>
             <div class="col-sm-11">
-                <input type="text" name="inner_path" class="col-xs-10 col-sm-4" value="{{.url.InnerPath}}"/>
+                <input type="text" name="inner_path" class="col-xs-10 col-sm-4" value="{{.api.InnerPath}}"/>
                 <span class="help-inline col-xs-12 col-sm-7">
 							<span class="middle" style="color:red">*必填*</span>
 						</span>
