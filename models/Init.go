@@ -24,7 +24,7 @@ func init() {
 	if dbtimezone != "" {
 		dsn = dsn + "&loc" + url.QueryEscape(dbtimezone)
 	}
-	orm.RegisterModelWithPrefix(beego.AppConfig.String("db.prefix"),new(User),new(serviceUrl),new(serviceApi))
+	orm.RegisterModelWithPrefix(beego.AppConfig.String("db.prefix"),new(User),new(ServiceUrl),new(ServiceApi))
 	orm.RegisterDataBase("default", "mysql", dsn)
 	if beego.AppConfig.String("runmode") == "dev" {
 		orm.Debug = true

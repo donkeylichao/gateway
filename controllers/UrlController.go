@@ -54,6 +54,10 @@ func (c *UrlController) Create() {
 			c.setFlash("notice", err.Error())
 		}
 	}
+
+	c.Data["url"] = url
+	c.Data["pageTitle"] = "添加URL"
+	c.display()
 }
 
 /**

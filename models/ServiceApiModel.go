@@ -59,7 +59,7 @@ func (this *ServiceApi) ConditionList(page int, field ...string) ([]*ServiceApi,
 			query.Filter(field[i],field[i+1])
 		}
 	}
-	count, _ := query.Count();
-	query.Limit(pageSize).Offset(offset).OrderBy("-id").All(serviceApi)
+	count, _ := query.Count()
+	query.Limit(pageSize).Offset(offset).OrderBy("-id").All(&serviceApi)
 	return serviceApi, count
 }

@@ -36,7 +36,7 @@ func (this *ServiceUrl) ConditionList(page int, field ...string) ([]*ServiceUrl,
 		}
 	}
 	count, _ := query.Count()
-	query.Limit(pageSize).Offset(offset).OrderBy("-id").All(serviceUrl)
+	query.Limit(pageSize).Offset(offset).OrderBy("-id").All(&serviceUrl)
 
 	return serviceUrl, count
 }

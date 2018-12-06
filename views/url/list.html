@@ -1,0 +1,82 @@
+<div class="breadcrumbs" id="breadcrumbs">
+    <script type="text/javascript">
+        try {
+            ace.settings.check('breadcrumbs', 'fixed')
+        } catch (e) {
+        }
+    </script>
+
+    <ul class="breadcrumb">
+        <li>
+            <i class="ace-icon fa fa-home home-icon"></i>
+            <a href="{{urlfor "UrlController.List"}}">URL管理</a>
+        </li>
+        <li class="active">{{.pageTitle}}</li>
+    </ul><!-- /.breadcrumb -->
+
+    <!-- #section:basics/content.searchbox -->
+    <div class="nav-search" id="nav-search">
+        <form class="form-search" method="get" action="{{urlfor "UrlController.List"}}">
+    <span class="input-icon">
+						<input type="text" placeholder="输入请求方式" class="nav-search-input" id="nav-search-input"
+                               name="method"/>
+						<i class="ace-icon fa fa-search nav-search-icon"></i>
+					</span>
+
+
+            <button type="submit" class="btn btn-primary btn-xs">
+                搜索
+            </button>
+        </form>
+    </div>
+    <!-- /.nav-search -->
+    <!-- /section:basics/content.searchbox -->
+
+</div>
+
+
+<!-- /section:basics/content.breadcrumbs -->
+<div class="page-content">
+
+{{template "layout/notify.html" .}}
+    {{/*{{Msg}}<!--自定义的session提示信息获取-->*/}}
+
+    <div>
+        <a class="btn btn-xs btn-success" href="{{urlfor "UrlController.Create"}}"
+           style="float:right; margin-bottom:5px;">
+            <i class="ace-icon fa fa-plus bigger-120"></i>添加内网地址
+        </a>
+        <table id="sample-table-1" class="table table-striped table-bordered table-hover center">
+            <thead>
+            <tr>
+                <th class="center">序号</th>
+                <th class="center">服务名称</th>
+                <th class="center">服务地址</th>
+                <th class="center">操作</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {{range $index, $item := .list}}
+            <tr>
+                <td>{{$index | In}}</td>
+                <td>{{$item.ServiceName}}</td>
+                <td>{{$item.ServiceUrl}}</td>
+                <td>
+                    <div class="btn-group">
+                        <a class="btn btn-xs btn-danger" href="{{urlfor "UrlController.Delete"}}?id={{$item.Id}}">
+                            <i class="ace-icon fa fa-trash-o bigger-120"></i>
+                        </a>
+                        <a class="btn btn-xs btn-primary" href="{{urlfor "UrlController.Update"}}?id={{$item.Id}}">
+                            <i class="ace-icon fa fa-pencil-square-o bigger-120"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {{end}}
+            </tbody>
+        </table>
+    </div>
+{{str2html .pageBar}}
+
+</div>

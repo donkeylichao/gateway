@@ -1,0 +1,61 @@
+<div class="breadcrumbs" id="breadcrumbs">
+    <script type="text/javascript">
+        try {
+            ace.settings.check('breadcrumbs', 'fixed')
+        } catch (e) {
+        }
+    </script>
+
+    <ul class="breadcrumb">
+        <li>
+            <i class="ace-icon fa fa-home home-icon"></i>
+            <a href="{{urlfor "UrlController.List"}}">URL管理</a>
+        </li>
+    </ul><!-- /.breadcrumb -->
+
+</div>
+
+<!-- /section:basics/content.breadcrumbs -->
+<div class="page-content">
+
+{{template "layout/notify.html" .}}
+
+    <form method="post" action="{{urlfor "UrlController.Update"}}?id={{.url.Id}}">
+
+        <div class="form-group">
+            <label class="col-sm-1 control-label no-padding-right">服务名称：</label>
+            <div class="col-sm-11">
+                <input type='text' name='service_name' class="col-xs-10 col-sm-4" value="{{.url.ServiceName}}"/>
+                <span class="help-inline col-xs-12 col-sm-7">
+							<span class="middle" style="color:red">*必填*</span>
+						</span>
+            </div>
+        </div>
+
+        <div height="10px">&nbsp;</div>
+
+        <div class="form-group">
+            <label class="col-sm-1 control-label no-padding-right">服务地址：</label>
+            <div class="col-sm-11">
+                <input type="text" name="service_url" class="col-xs-10 col-sm-4" value="{{.url.ServiceUrl}}"/>
+                <span class="help-inline col-xs-12 col-sm-7">
+							<span class="middle" style="color:red">*必填*</span>
+						</span>
+            </div>
+        </div>
+
+        <div height="10px">&nbsp;</div>
+
+        <div class="col-md-offset-1 col-md-9">
+            <button class="btn btn-info" type="submit">
+                <i class="ace-icon fa fa-check bigger-110"></i>
+                提交
+            </button>
+
+            &nbsp; &nbsp; &nbsp;
+            <button class="btn" type="reset">
+                <i class="ace-icon fa fa-undo bigger-110"></i>
+                重置
+            </button>
+        </div>
+    </form>

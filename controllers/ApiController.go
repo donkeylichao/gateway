@@ -63,6 +63,9 @@ func (c *ApiController) Create() {
 			c.setFlash("notice", err.Error())
 		}
 	}
+	c.Data["api"] = api
+	c.Data["pageTitle"] = "添加API"
+	c.display()
 }
 
 /**
