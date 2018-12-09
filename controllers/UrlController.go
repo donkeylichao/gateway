@@ -30,6 +30,7 @@ func (c *UrlController) List() {
 	c.Data["pageTitle"] = "url列表"
 	c.Data["pageBar"] = help.NewPager(page, int(count), c.pageSize, beego.URLFor("UrlController.List"), true).ToString()
 	c.display()
+	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 }
 
 /**
@@ -58,6 +59,7 @@ func (c *UrlController) Create() {
 	c.Data["url"] = url
 	c.Data["pageTitle"] = "添加URL"
 	c.display()
+	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 }
 
 /**
@@ -74,6 +76,7 @@ func (c *UrlController) Delete() {
 		c.SetSession("success", "删除成功")
 		c.redirect(beego.URLFor("UrlController.List"))
 	}
+	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 	c.SetSession("error", "删除失败")
 	c.redirect(beego.URLFor("UrlController.List"))
 }
@@ -109,4 +112,5 @@ func (c *UrlController) Update() {
 	c.Data["url"] = url
 	c.Data["pageTitle"] = "url修改"
 	c.display()
+	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 }
