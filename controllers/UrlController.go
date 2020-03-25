@@ -5,6 +5,7 @@ import (
 	"gateway/help"
 	"github.com/astaxie/beego"
 	"github.com/asaskevich/govalidator"
+	"github.com/astaxie/beego/orm"
 )
 
 type UrlController struct {
@@ -14,6 +15,7 @@ type UrlController struct {
 /**
 条件搜索列表
  */
+// @router /list [get]
 func (c *UrlController) List() {
 	var url models.ServiceUrl
 	page, _ := c.GetInt("page")
@@ -24,7 +26,6 @@ func (c *UrlController) List() {
 		condition = append(condition, "service_name")
 		condition = append(condition, serviceName)
 	}
-	condition = append(condition,[]interface{}{"is_delete",models.IS_DELETE_NO}...)
 	list, count := url.ConditionList(page, condition...)
 	c.Data["list"] = list
 	c.Data["pageTitle"] = "url列表"
@@ -36,6 +37,7 @@ func (c *UrlController) List() {
 /**
 添加url
  */
+// @router /create [get,post]
 func (c *UrlController) Create() {
 	var url models.ServiceUrl
 
@@ -65,11 +67,17 @@ func (c *UrlController) Create() {
 /**
 删除url
  */
+// @router /delete [get]
 func (c *UrlController) Delete() {
 	var url models.ServiceUrl
 	id, _ := c.GetInt("id")
 	if _, err := url.FindById(id); err != nil {
 		c.SetSession("notice", "删除数据不存在")
+		c.redirect(beego.URLFor("UrlController.List"))
+	}
+	count, _ := orm.NewOrm().QueryTable(new(models.ServiceApi)).Filter("service_url_id", id).Count()
+	if count > 0 {
+		c.SetSession("error", "请先删除api")
 		c.redirect(beego.URLFor("UrlController.List"))
 	}
 	if _, err := url.Delete(); err == nil {
@@ -84,6 +92,7 @@ func (c *UrlController) Delete() {
 /**
 修改url
  */
+// @router /update [get,post]
 func (c *UrlController) Update() {
 	var url models.ServiceUrl
 	id,_ := c.GetInt("id")

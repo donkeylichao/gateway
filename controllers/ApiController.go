@@ -16,6 +16,7 @@ type ApiController struct {
 /**
 条件索搜列表
  */
+// @router /list [get]
 func (c *ApiController) List() {
 	var api models.ServiceApi
 	page, _ := c.GetInt("page")
@@ -31,11 +32,10 @@ func (c *ApiController) List() {
 		condition = append(condition, "method")
 		condition = append(condition, method)
 	}
-	condition = append(condition, []interface{}{"is_delete", models.IS_DELETE_NO}...)
 	list, count := api.ConditionList(page, condition...)
 
 	urlModel := []models.ServiceUrl{}
-	_, err := orm.NewOrm().QueryTable(new(models.ServiceUrl)).Filter("is_delete", models.IS_DELETE_NO).All(&urlModel)
+	_, err := orm.NewOrm().QueryTable(new(models.ServiceUrl)).All(&urlModel)
 	if err != nil {
 		logs.Error(err)
 	} else {
@@ -53,6 +53,7 @@ func (c *ApiController) List() {
 /**
 添加api
  */
+// @router /create [get,post]
 func (c *ApiController) Create() {
 	var api models.ServiceApi
 	if c.IsPost() {
@@ -79,7 +80,7 @@ func (c *ApiController) Create() {
 
 	var url []models.ServiceUrl
 	o := orm.NewOrm()
-	_,err := o.QueryTable(new(models.ServiceUrl)).Filter("is_delete",models.IS_DELETE_NO).All(&url)
+	_,err := o.QueryTable(new(models.ServiceUrl)).All(&url)
 	if err != nil{
 		c.setFlash("error",err.Error())
 	} else {
@@ -97,6 +98,7 @@ func (c *ApiController) Create() {
 /**
 删除api
  */
+// @router /delete [get]
 func (c *ApiController) Delete() {
 	var api models.ServiceApi
 	id, _ := c.GetInt("id");
@@ -117,6 +119,7 @@ func (c *ApiController) Delete() {
 /**
 修改api
  */
+// @router /update [get,post]
 func (c *ApiController) Update() {
 	var api models.ServiceApi
 	id,_ := c.GetInt("id")
@@ -143,7 +146,7 @@ func (c *ApiController) Update() {
 
 	var url []models.ServiceUrl
 	o := orm.NewOrm()
-	_,err := o.QueryTable(new(models.ServiceUrl)).Filter("is_delete",models.IS_DELETE_NO).All(&url)
+	_,err := o.QueryTable(new(models.ServiceUrl)).All(&url)
 	if err != nil{
 		c.setFlash("error",err.Error())
 	} else {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"strconv"
 	"gateway/models"
+	"github.com/astaxie/beego"
 )
 
 type MainController struct {
@@ -16,35 +17,41 @@ func (c *MainController) Get() {
 }
 
 //后台首页
-func (this *MainController) Index() {
-	this.display()
+func (c *MainController) Index() {
+	c.display()
 }
 
 //登录
-func (this *MainController) Login() {
-	email := this.Input().Get("email")
-	password := this.Input().Get("password")
+func (c *MainController) Login() {
+	email := c.Input().Get("email")
+	password := c.Input().Get("password")
 
-	if this.IsPost(){
-		if this.LoginMethod(email,password) {
-			this.redirect("/index")
+	if c.IsPost(){
+		if c.LoginMethod(email,password) {
+			c.redirect(beego.URLFor("MainController.Index"))
 		}
-		this.setFlash("error","账号不存在")
+		c.setFlash("error","账号不存在")
 	}
-	this.Data["email"] = email
-	this.Data["password"] = password
-	this.TplName = "login.html"
+	c.Data["email"] = email
+	c.Data["password"] = password
+	c.TplName = "login.html"
 }
 
 //登录方法
-func (this *MainController) LoginMethod(user ...string) bool {
+func (c *MainController) LoginMethod(user ...string) bool {
 	email := user[0]
-	password := this.crypt(user[1])
+	password := c.crypt(user[1])
 	users := new(models.User)
 	u,err := users.GetUserByEmail(email,password)
 	if err != nil {
 		return false
 	}
-	this.SetSession("userId",strconv.Itoa(u.Id))
+	c.SetSession("userId",strconv.Itoa(u.Id))
 	return true
+}
+
+//退出
+func (c *MainController) Logout() {
+	c.DelSession("userId")
+	c.redirect(beego.URLFor("MainController.Login"))
 }

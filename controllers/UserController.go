@@ -16,6 +16,7 @@ type UserController struct {
 /**
 用户列表
  */
+// @router /list [get]
 func (c *UserController) List() {
 	var User models.User
 	page, _ := c.GetInt("page", 0)
@@ -36,6 +37,7 @@ func (c *UserController) List() {
 /**
 添加用户
  */
+// @router /create [get,post]
 func (c *UserController) Create() {
 	var user models.User
 	if c.IsPost() {
@@ -66,6 +68,7 @@ func (c *UserController) Create() {
 /**
 删除用户
  */
+// @router /delete [get]
 func (c *UserController) Delete() {
 	var User models.User
 	id, _ := c.GetInt("id")
@@ -84,6 +87,7 @@ func (c *UserController) Delete() {
 /**
 更新用户
  */
+// @router /update [get,post]
 func (c *UserController) Update() {
 	var user models.User
 	id, _ := c.GetInt("id", 0)

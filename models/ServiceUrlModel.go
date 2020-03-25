@@ -9,13 +9,7 @@ type ServiceUrl struct {
 	Id          int           `valid:"-" json:"id"`
 	ServiceName string        `form:"service_name" valid:"required" json:"service_name"`
 	ServiceUrl  string        `form:"service_url" valid:"required"`
-	IsDelete    int8          `form:"-" valid:"-"`
 }
-
-const (
-	IS_DELETE_NO = iota
-	IS_DELETE_YES
-)
 
 func init() {
 	orm.RegisterModel(new(ServiceUrl))
@@ -59,11 +53,10 @@ func (this *ServiceUrl) Create() (int64, error) {
 }
 
 /**
-软删除
+删除
  */
 func (this *ServiceUrl) Delete() (int64, error) {
-	this.IsDelete = IS_DELETE_YES
-	return orm.NewOrm().Update(this)
+	return orm.NewOrm().Delete(this)
 }
 
 /**
@@ -71,4 +64,13 @@ func (this *ServiceUrl) Delete() (int64, error) {
  */
 func (this *ServiceUrl) Update() (int64, error) {
 	return orm.NewOrm().Update(this)
+}
+
+/**
+获取所有列表
+ */
+func (*ServiceUrl) List() []*ServiceUrl {
+	var serviceUrl []*ServiceUrl
+	orm.NewOrm().QueryTable(new(ServiceUrl)).All(&serviceUrl)
+	return serviceUrl
 }

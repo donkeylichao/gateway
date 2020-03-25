@@ -12,7 +12,6 @@ type ServiceApi struct {
 	ApiAlias     string `form:"api_alias" valid:"required"`
 	ApiPath      string `form:"api_path" valid:"required"`
 	InnerPath    string `form:"inner_path" valid:"required"`
-	IsDelete     int8   `form:"-" valid:"-"`
 
 	ServiceName string `form:"-" valid:"-" orm:"-"`
 }
@@ -43,8 +42,7 @@ func (this *ServiceApi) Create() (int64, error) {
 删除serviceapi
  */
 func (this *ServiceApi) Delete() (int64, error) {
-	this.IsDelete = IS_DELETE_YES
-	return orm.NewOrm().Update(this)
+	return orm.NewOrm().Delete(this)
 }
 
 /**
@@ -87,4 +85,14 @@ func (this ServiceApi) GetMethodAll() []string  {
 	return []string{
 		"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
 	}
+}
+
+/**
+获取所有的数据
+ */
+func (this *ServiceApi) List() []*ServiceApi {
+	var serviceApi []*ServiceApi
+	query := orm.NewOrm().QueryTable(new(ServiceApi))
+	query.All(&serviceApi)
+	return serviceApi
 }
