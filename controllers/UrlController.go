@@ -19,12 +19,12 @@ func (c *UrlController) List() {
 	page, _ := c.GetInt("page")
 	serviceName := c.GetString("name")
 
-	condition := make([]string, 0)
+	condition := make([]interface{}, 0)
 	if serviceName != "" {
 		condition = append(condition, "service_name")
 		condition = append(condition, serviceName)
 	}
-
+	condition = append(condition,[]interface{}{"is_delete",models.IS_DELETE_NO}...)
 	list, count := url.ConditionList(page, condition...)
 	c.Data["list"] = list
 	c.Data["pageTitle"] = "url列表"

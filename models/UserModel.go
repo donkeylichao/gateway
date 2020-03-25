@@ -16,6 +16,11 @@ type User struct {
 	LastLoginTime int    `valid:"-"`
 }
 
+func init() {
+	orm.RegisterModel(new(User))
+}
+
+
 //通过邮箱密码获取用户信息
 func (this *User) GetUserByEmail(user ...string) (*User, error) {
 
@@ -47,7 +52,7 @@ func (this *User) ConditionList(page int, fields []string) ([]*User, int64) {
 	var users []*User
 	pageSize, _ := beego.AppConfig.Int("pageSize")
 	offset := (page - 1) * pageSize
-	query := orm.NewOrm().QueryTable(TableName("user"))
+	query := orm.NewOrm().QueryTable(new(User))
 	if len(fields) > 0 {
 		for i := 0; i<len(fields);i=i+2  {
 			query.Filter(fields[i],fields[i+1])
@@ -77,7 +82,7 @@ func (this *User) Del() (int64, error) {
  */
 
 func (this *User) Delete(id int) (int64, error) {
-	return orm.NewOrm().QueryTable(TableName("user")).Filter("id", id).Delete()
+	return orm.NewOrm().QueryTable(new(User)).Filter("id", id).Delete()
 }
 
 /**

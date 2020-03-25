@@ -5,6 +5,8 @@ import (
 	"gateway/help"
 	"github.com/astaxie/beego"
 	"github.com/asaskevich/govalidator"
+	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego/logs"
 )
 
 type ApiController struct {
@@ -20,7 +22,7 @@ func (c *ApiController) List() {
 	serviceName := c.GetString("name")
 	method := c.GetString("method")
 
-	condition := make([]string, 0)
+	condition := make([]interface{}, 0)
 	if serviceName != "" {
 		condition = append(condition, "service_name")
 		condition = append(condition, serviceName)
@@ -29,8 +31,16 @@ func (c *ApiController) List() {
 		condition = append(condition, "method")
 		condition = append(condition, method)
 	}
-
+	condition = append(condition, []interface{}{"is_delete", models.IS_DELETE_NO}...)
 	list, count := api.ConditionList(page, condition...)
+
+	urlModel := []models.ServiceUrl{}
+	_, err := orm.NewOrm().QueryTable(new(models.ServiceUrl)).Filter("is_delete", models.IS_DELETE_NO).All(&urlModel)
+	if err != nil {
+		logs.Error(err)
+	} else {
+		api.AddServiceName(list, urlModel)
+	}
 
 	c.Data["list"] = list
 	c.Data["pageTitle"] = "api列表"
@@ -66,6 +76,17 @@ func (c *ApiController) Create() {
 			c.setFlash("notice", err.Error())
 		}
 	}
+
+	var url []models.ServiceUrl
+	o := orm.NewOrm()
+	_,err := o.QueryTable(new(models.ServiceUrl)).Filter("is_delete",models.IS_DELETE_NO).All(&url)
+	if err != nil{
+		c.setFlash("error",err.Error())
+	} else {
+		c.Data["serviceUrl"] = url
+	}
+
+	c.Data["method"] = api.GetMethodAll()
 	c.Data["api"] = api
 	c.Data["pageTitle"] = "添加API"
 	c.display()
@@ -120,6 +141,16 @@ func (c *ApiController) Update() {
 		}
 	}
 
+	var url []models.ServiceUrl
+	o := orm.NewOrm()
+	_,err := o.QueryTable(new(models.ServiceUrl)).Filter("is_delete",models.IS_DELETE_NO).All(&url)
+	if err != nil{
+		c.setFlash("error",err.Error())
+	} else {
+		c.Data["serviceUrl"] = url
+	}
+
+	c.Data["method"] = api.GetMethodAll()
 	c.Data["api"] = api
 	c.Data["pageTitle"] = "api修改"
 	c.display()

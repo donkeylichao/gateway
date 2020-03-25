@@ -6,9 +6,19 @@ import (
 )
 
 type ServiceUrl struct {
-	Id          int    `valid:"-"`
-	ServiceName string `form:"service_name" valid:"required"`
-	ServiceUrl  string `form:"service_url" valid:"required"`
+	Id          int           `valid:"-" json:"id"`
+	ServiceName string        `form:"service_name" valid:"required" json:"service_name"`
+	ServiceUrl  string        `form:"service_url" valid:"required"`
+	IsDelete    int8          `form:"-" valid:"-"`
+}
+
+const (
+	IS_DELETE_NO = iota
+	IS_DELETE_YES
+)
+
+func init() {
+	orm.RegisterModel(new(ServiceUrl))
 }
 
 /**
@@ -25,14 +35,14 @@ func (this *ServiceUrl) FindById(id int) (*ServiceUrl, error) {
 /**
 获取列表
  */
-func (this *ServiceUrl) ConditionList(page int, field ...string) ([]*ServiceUrl, int64) {
+func (this *ServiceUrl) ConditionList(page int, field ...interface{}) ([]*ServiceUrl, int64) {
 	var serviceUrl []*ServiceUrl
 	pageSize, _ := beego.AppConfig.Int("pageSize")
 	offset := (page - 1) * pageSize
 	query := orm.NewOrm().QueryTable(new(ServiceUrl))
 	if len(field) > 0 {
 		for i := 0; i < len(field); i = i + 2 {
-			query.Filter(field[i], field[i+1])
+			query = query.Filter(field[i].(string), field[i+1])
 		}
 	}
 	count, _ := query.Count()
@@ -49,10 +59,11 @@ func (this *ServiceUrl) Create() (int64, error) {
 }
 
 /**
-删除
+软删除
  */
 func (this *ServiceUrl) Delete() (int64, error) {
-	return orm.NewOrm().Delete(this)
+	this.IsDelete = IS_DELETE_YES
+	return orm.NewOrm().Update(this)
 }
 
 /**
