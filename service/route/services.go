@@ -10,24 +10,19 @@ import (
 	"strconv"
 )
 
-/* 计算使用的数据容器 */
-var comb []interface{}
-
 /**
  获取当前请求匹配的转发设置
  */
 func GetGatewayService(requestParam map[string]interface{}) interface{} {
 	//获取当前请求路径数组
-	currentRoute := GetCurrentRoute(requestParam)
+	currentRoute := getCurrentRoute(requestParam)
 
 	//获取数据库请求路径配置
-	apiData := GetRouteConfig()
-	return apiData
+	apiData := getRouteConfig()
 
-	for _,v := range currentRoute.([]interface{}) {
-		apiDataMap := apiData.(map[string]interface{})
-		if apiDataMap[v.(string)] != nil {
-			return parseServicePath(requestParam["path"].(string),apiDataMap[v.(string)])
+	for _, v := range currentRoute {
+		if apiData[v.(string)] != nil {
+			return parseServicePath(requestParam["path"].(string), apiData[v.(string)])
 		}
 	}
 	return nil
@@ -36,13 +31,13 @@ func GetGatewayService(requestParam map[string]interface{}) interface{} {
 /**
  获取数据库设置的所有url配置数组
  */
-func GetRouteConfig() interface{} {
+func getRouteConfig() map[string]interface{} {
 
 	routeConfig := beego.AppConfig.String("route::cache")
 	if c := help.Redis.Get(routeConfig); c == nil {
 		var url models.ServiceUrl
 		var api models.ServiceApi
-		urldata := url.List()
+		urldata := url.IdAndUrlList()
 		apidata := api.List()
 
 		returnData := getHandleApi(apidata, urldata)
@@ -50,7 +45,7 @@ func GetRouteConfig() interface{} {
 		help.Redis.Put(routeConfig, saveData, time.Hour)
 		return returnData
 	} else {
-		var data interface{}
+		var data map[string]interface{}
 		if err := json.Unmarshal(c.([]byte), &data); err != nil {
 			panic(err)
 		} else {
@@ -62,16 +57,14 @@ func GetRouteConfig() interface{} {
 /**
  获取格式化后的api数据
  */
-func getHandleApi(api []*models.ServiceApi, url []*models.ServiceUrl) map[string]interface{} {
+func getHandleApi(api []*models.ServiceApi, url map[int]string) map[string]interface{} {
 	data := make(map[string]interface{})
-	u := getHandleUrl(url)
 	for _, a := range api {
 		formatA := make(map[string]interface{})
 		formatA["Method"] = a.Method
-		formatA["ServiceUrl"] = u[a.ServiceUrlId]
+		formatA["ServiceUrl"] = url[a.ServiceUrlId]
 		formatA["ApiAlias"] = a.ApiAlias
 		formatA["ApiPath"] = a.ApiPath
-		formatA["InnerPath"] = a.InnerPath
 
 		data["["+a.Method+"]"+a.ApiAlias] = formatA
 	}
@@ -79,51 +72,39 @@ func getHandleApi(api []*models.ServiceApi, url []*models.ServiceUrl) map[string
 }
 
 /**
- 获取格式化的url数据
- */
-func getHandleUrl(url []*models.ServiceUrl) map[int]string {
-	data := make(map[int]string)
-	for _, u := range url {
-		data[u.Id] = u.ServiceUrl
-	}
-	return data
-}
-
-/**
  解析请求路由
  */
-func GetCurrentRoute(requestParam map[string]interface{}) interface{} {
+func getCurrentRoute(requestParam map[string]interface{}) []interface{} {
 
 	method := requestParam["method"]
 	path := requestParam["path"]
 	placeHolder := beego.AppConfig.String("route::parser_placeholder")
-	pathData := make(map[int]interface{})
-	combine := strings.Split(strings.Trim(path.(string),"/"), "/")
+
+	combine := strings.Split(strings.Trim(path.(string), "/"), "/")
 	count := len(combine)
 
 	if path == "/" {
-		pathData[0] = "/"
-		return pathData
+		return []interface{}{"[" + method.(string) + "]/"}
 	}
 
 	//计算替换的数组下标
-	pathData = processCombine(count, placeHolder)
+	pathData := processCombine(count, placeHolder)
 
 	//拼接格式化的key数组
 	var returnPath []interface{}
-	originPath := "[" +method.(string)+"]" + path.(string)
-	returnPath = append(returnPath,originPath)
-	for _,v := range pathData {
+	originPath := "[" + method.(string) + "]" + path.(string)
+	returnPath = append(returnPath, originPath)
+	for _, v := range pathData {
 		temp := make([]string, count)
-		copy(temp,combine)
-		for k,i := range v.(map[int]string) {
+		copy(temp, combine)
+		for k, i := range v.(map[int]string) {
 			temp[k] = i
 		}
-		combinePath := "["+method.(string)+"]"
-		for _,v := range temp {
-			combinePath += "/"+v
+		methodPath := "[" + method.(string) + "]"
+		for _, v := range temp {
+			methodPath += "/" + v
 		}
-		returnPath = append(returnPath,combinePath)
+		returnPath = append(returnPath, methodPath)
 	}
 	return returnPath
 }
@@ -134,19 +115,18 @@ func GetCurrentRoute(requestParam map[string]interface{}) interface{} {
 func processCombine(count int, placeholder string) map[int]interface{} {
 	combinineString := ""
 
-	for i := 0; i < count ; i++ {
+	for i := 0; i < count; i++ {
 		combinineString += strconv.Itoa(i)
 	}
 
-	SliceClear(&comb) //清空数据，每次调用都初始化
-	combinineArray := combinations(combinineString)//递归获取替换的下标数组
+	combinineArray := combinations(combinineString) //递归获取替换的下标数组
 	newComBinineArray := combinineArray.([]interface{})
 	combine := make(map[int]interface{})
 
 	for k, v := range newComBinineArray {
 		index := make(map[int]string)
 		for _, v := range strings.Split(v.(string), ",") {
-			kindex,_ := strconv.Atoi(v)
+			kindex, _ := strconv.Atoi(v)
 			index[kindex] = placeholder
 		}
 		combine[k] = index
@@ -163,17 +143,19 @@ func combinations(combine string) interface{} {
 	if combine == "" {
 		return nil
 	}
-	if len(combine) <= 1 {
 
+	var comb []interface{}
+	if len(combine) <= 1 {
 		comb = append(comb, combine)
 	} else {
-		strFirst := combine[0:1]
-		content := combine[1: len(combine)]
-		combTemp := combinations(content)
+		first := combine[0:1]
+		remain := combine[1:]
+		combTemp := combinations(remain)
 		newCombTemp := combTemp.([]interface{})
-		comb = append(comb, strFirst)
+		comb = append(comb, first)
+		comb = append(comb, newCombTemp...)
 		for _, v := range newCombTemp {
-			comb = append(comb, (strFirst + "," + v.(string)))
+			comb = append(comb, (first + "," + v.(string)))
 		}
 	}
 
@@ -183,44 +165,40 @@ func combinations(combine string) interface{} {
 /**
  计算有参数的路由转发地址
  */
-func parseServicePath(path string ,matchRoute interface{}) interface{} {
+func parseServicePath(path string, matchRoute interface{}) interface{} {
 
 	//请求path
-	pathOrgin := strings.Trim(path,"/")
+	pathOrgin := strings.Trim(path, "/")
 	//网关配置path
-	routePath := strings.Trim(matchRoute.(map[string]interface{})["ApiAlias"].(string),"/")
+	routePath := strings.Trim(matchRoute.(map[string]interface{})["ApiAlias"].(string), "/")
 	//转发配置path
-	apiPath := strings.Trim(matchRoute.(map[string]interface{})["ApiPath"].(string),"/")
+	apiPath := strings.Trim(matchRoute.(map[string]interface{})["ApiPath"].(string), "/")
 
 	//分别存放原始数据的map
-	pathOrginSlice := strings.Split(pathOrgin,"/")
-	routePathSlice := strings.Split(routePath,"/")
-	apiPathSlice := strings.Split(apiPath,"/")
+	pathOrginSlice := strings.Split(pathOrgin, "/")
+	routePathSlice := strings.Split(routePath, "/")
+	apiPathSlice := strings.Split(apiPath, "/")
 
 	var pathReplaceSlice []string
-	for k,v := range routePathSlice {
-		if v[0:1] == "[" {
-			pathReplaceSlice = append(pathReplaceSlice,pathOrginSlice[k])
+	placeHolder := beego.AppConfig.String("route::parser_placeholder")
+	for k, v := range routePathSlice {
+		if v == placeHolder {
+			pathReplaceSlice = append(pathReplaceSlice, pathOrginSlice[k])
 		}
 	}
 
 	returnPath := ""
-	for k,v := range apiPathSlice {
-		if v[0:1] == "[" {
-			apiPathSlice[k] = pathReplaceSlice[0]
+	itemUrl := ""
+	for _, v := range apiPathSlice {
+		if v == placeHolder {
+			itemUrl = pathReplaceSlice[0]
 			pathReplaceSlice = pathReplaceSlice[1:]
+		} else {
+			itemUrl = v
 		}
-		returnPath +=  "/"+apiPathSlice[k]
+		returnPath += "/" + itemUrl
 	}
 
 	//组装request请求转发的真实路径
 	return matchRoute.(map[string]interface{})["ServiceUrl"].(string) + returnPath
 }
-
-/**
- 清空切片内容
- */
-func SliceClear(s *[]interface{}) {
-	*s = (*s)[0:0]
-}
-

@@ -46,8 +46,6 @@ func (c *ApiController) List() {
 	c.Data["pageTitle"] = "api列表"
 	c.Data["pageBar"] = help.NewPager(page, int(count), c.pageSize, beego.URLFor("ApiController.List"), true).ToString()
 	c.display()
-
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 }
 
 /**
@@ -92,7 +90,7 @@ func (c *ApiController) Create() {
 	c.Data["pageTitle"] = "添加API"
 	c.display()
 
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
+	help.Redis.Delete(beego.AppConfig.String("route::cache"))
 }
 
 /**
@@ -111,7 +109,7 @@ func (c *ApiController) Delete() {
 		c.SetSession("success", "删除成功")
 		c.redirect(beego.URLFor("ApiController.List"))
 	}
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
+	help.Redis.Delete(beego.AppConfig.String("route::cache"))
 	c.SetSession("error", "删除失败")
 	c.redirect(beego.URLFor("ApiController.List"))
 }
@@ -157,5 +155,5 @@ func (c *ApiController) Update() {
 	c.Data["api"] = api
 	c.Data["pageTitle"] = "api修改"
 	c.display()
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
+	help.Redis.Delete(beego.AppConfig.String("route::cache"))
 }

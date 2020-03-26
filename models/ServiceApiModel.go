@@ -11,7 +11,6 @@ type ServiceApi struct {
 	Method       string `form:"method" valid:"required"`
 	ApiAlias     string `form:"api_alias" valid:"required"`
 	ApiPath      string `form:"api_path" valid:"required"`
-	InnerPath    string `form:"inner_path" valid:"required"`
 
 	ServiceName string `form:"-" valid:"-" orm:"-"`
 }

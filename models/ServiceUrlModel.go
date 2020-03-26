@@ -69,8 +69,13 @@ func (this *ServiceUrl) Update() (int64, error) {
 /**
 获取所有列表
  */
-func (*ServiceUrl) List() []*ServiceUrl {
+func (*ServiceUrl) IdAndUrlList() map[int]string {
 	var serviceUrl []*ServiceUrl
 	orm.NewOrm().QueryTable(new(ServiceUrl)).All(&serviceUrl)
-	return serviceUrl
+
+	data := make(map[int]string)
+	for _, u := range serviceUrl {
+		data[u.Id] = u.ServiceUrl
+	}
+	return data
 }
