@@ -22,6 +22,7 @@ func GetGatewayService(requestParam map[string]interface{}) interface{} {
 
 	//获取数据库请求路径配置
 	apiData := GetRouteConfig()
+	return apiData
 
 	for _,v := range currentRoute.([]interface{}) {
 		apiDataMap := apiData.(map[string]interface{})
@@ -37,7 +38,7 @@ func GetGatewayService(requestParam map[string]interface{}) interface{} {
  */
 func GetRouteConfig() interface{} {
 
-	routeConfig := beego.AppConfig.String("route.cache")
+	routeConfig := beego.AppConfig.String("route::cache")
 	if c := help.Redis.Get(routeConfig); c == nil {
 		var url models.ServiceUrl
 		var api models.ServiceApi
@@ -67,7 +68,7 @@ func getHandleApi(api []*models.ServiceApi, url []*models.ServiceUrl) map[string
 	for _, a := range api {
 		formatA := make(map[string]interface{})
 		formatA["Method"] = a.Method
-		formatA["ServiceUrl"] = u[a.ServiceName]
+		formatA["ServiceUrl"] = u[a.ServiceUrlId]
 		formatA["ApiAlias"] = a.ApiAlias
 		formatA["ApiPath"] = a.ApiPath
 		formatA["InnerPath"] = a.InnerPath
@@ -80,10 +81,10 @@ func getHandleApi(api []*models.ServiceApi, url []*models.ServiceUrl) map[string
 /**
  获取格式化的url数据
  */
-func getHandleUrl(url []*models.ServiceUrl) map[string]string {
-	data := make(map[string]string)
+func getHandleUrl(url []*models.ServiceUrl) map[int]string {
+	data := make(map[int]string)
 	for _, u := range url {
-		data[u.ServiceName] = u.ServiceUrl
+		data[u.Id] = u.ServiceUrl
 	}
 	return data
 }
@@ -95,7 +96,7 @@ func GetCurrentRoute(requestParam map[string]interface{}) interface{} {
 
 	method := requestParam["method"]
 	path := requestParam["path"]
-	placeHolder := beego.AppConfig.String("route.parser_placeholder")
+	placeHolder := beego.AppConfig.String("route::parser_placeholder")
 	pathData := make(map[int]interface{})
 	combine := strings.Split(strings.Trim(path.(string),"/"), "/")
 	count := len(combine)
