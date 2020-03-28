@@ -3,15 +3,18 @@ package routers
 import (
 	"gateway/controllers"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/plugins/cors"
 )
 
 func init() {
-	//beego.Router("/", &controllers.MainController{})
-	//beego.Router("/index", &controllers.MainController{}, "*:Index")
-	//beego.Router("/login", &controllers.MainController{}, "*:Login")
-	//beego.AutoRouter(&controllers.UserController{})
-	//beego.AutoRouter(&controllers.UrlController{})
-	//beego.AutoRouter(&controllers.ApiController{})
+	// 跨域设置
+	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
+		AllowCredentials: true,
+	}))
 
 	ns := beego.NewNamespace("/admin",
 

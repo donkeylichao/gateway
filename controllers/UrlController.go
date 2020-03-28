@@ -107,6 +107,7 @@ func (c *UrlController) Update() {
 				_,err := url.Update()
 				if err == nil {
 					c.SetSession("success","修改成功")
+					help.Redis.Delete(beego.AppConfig.String("route::cache"))
 					c.redirect(beego.URLFor("UrlController.List"))
 				}
 				c.setFlash("error",err.Error())

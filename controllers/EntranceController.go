@@ -21,7 +21,8 @@ type EntranceController struct {
  网关入口
  */
 func (c *EntranceController) Entrance() {
-
+	// 设置跨域
+	c.Ctx.ResponseWriter.Header().Set("Access-Control-Allow-Origin", c.Ctx.Request.Header.Get("Origin"))
 	requestParams := c.parseRequestParameters()
 
 	response := make(map[string]interface{})
