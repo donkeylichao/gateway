@@ -82,7 +82,7 @@ func (this ServiceApi) AddServiceName(apis []ServiceApi, urls []ServiceUrl) {
 
 func (this ServiceApi) GetMethodAll() []string  {
 	return []string{
-		"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
+		"GET", "POST", "PUT", "PATCH", "DELETE",
 	}
 }
 

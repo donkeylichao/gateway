@@ -55,16 +55,12 @@ func (c *ApiController) List() {
 func (c *ApiController) Create() {
 	var api models.ServiceApi
 	if c.IsPost() {
-		//api.ServiceName = strings.TrimSpace(c.GetString("service_name"))
-		//api.Method = strings.TrimSpace(c.GetString("method"))
-		//api.ApiAlias = strings.TrimSpace(c.GetString("api_alias"))
-		//api.ApiPath = strings.TrimSpace(c.GetString("api_path"))
-		//api.InnerPath = strings.TrimSpace(c.GetString("inner_path"))
 		if err := c.ParseForm(&api); err == nil {
 			if _, err := govalidator.ValidateStruct(api); err == nil {
 				_, err := api.Create()
 				if err == nil {
 					c.SetSession("success", "添加成功")
+					help.Redis.Delete(beego.AppConfig.String("route::cache"))
 					c.redirect(beego.URLFor("ApiController.List"))
 				}
 				c.setFlash("error", err.Error())
@@ -89,8 +85,6 @@ func (c *ApiController) Create() {
 	c.Data["api"] = api
 	c.Data["pageTitle"] = "添加API"
 	c.display()
-
-	help.Redis.Delete(beego.AppConfig.String("route::cache"))
 }
 
 /**
@@ -107,9 +101,10 @@ func (c *ApiController) Delete() {
 
 	if _, err := api.Delete(); err == nil {
 		c.SetSession("success", "删除成功")
+		help.Redis.Delete(beego.AppConfig.String("route::cache"))
 		c.redirect(beego.URLFor("ApiController.List"))
 	}
-	help.Redis.Delete(beego.AppConfig.String("route::cache"))
+
 	c.SetSession("error", "删除失败")
 	c.redirect(beego.URLFor("ApiController.List"))
 }
@@ -131,6 +126,7 @@ func (c *ApiController) Update() {
 				_,err := api.Update()
 				if err ==nil {
 					c.SetSession("success","修改成功")
+					help.Redis.Delete(beego.AppConfig.String("route::cache"))
 					c.redirect(beego.URLFor("ApiController.List"))
 				}
 				c.setFlash("error",err.Error())
@@ -155,5 +151,5 @@ func (c *ApiController) Update() {
 	c.Data["api"] = api
 	c.Data["pageTitle"] = "api修改"
 	c.display()
-	help.Redis.Delete(beego.AppConfig.String("route::cache"))
+
 }

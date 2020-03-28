@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/astaxie/beego"
 	"gateway/service/route"
+	"strings"
 	"gateway/service/http"
 )
 
@@ -21,31 +22,36 @@ type EntranceController struct {
  */
 func (c *EntranceController) Entrance() {
 
-	c.Data["json"] = "test"
-	c.ServeJSON()
-	return
 	requestParams := c.parseRequestParameters()
 
 	response := make(map[string]interface{})
-	response["status"] = 1
-	response["success"] = "success"
 
 	if requestParams["method"] == "OPTIONS" {
-		c.Data["json"] = response
+		response["status"] = 1
+		response["msg"] = "success"
 	} else {
 
 		matchRoute := route.GetGatewayService(requestParams)
-		if matchRoute == nil {
-			matchRoute = "请求路由不存在"
-			response["success"] = "fail"
-			response["status"] = "0"
+		apiReturn := map[string]interface{}{}
+
+		if matchRoute == "" {
+			response["status"] = 0
+			response["msg"] = "请求路由不存在"
 		} else {
-			response,_,_ := http.Request(matchRoute.(string),requestParams)
-			matchRoute = response
+			responseData, err := http.Request(requestParams,matchRoute)
+			if err != nil {
+				response["status"] = 0
+				response["msg"] = err.Error()
+			} else {
+				response["status"] = 1
+				response["msg"] = "success"
+			}
+			apiReturn = responseData
 		}
-		response["data"] = matchRoute
-		c.Data["json"] = response
+		response["data"] = apiReturn
 	}
+
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 
@@ -60,8 +66,17 @@ func (c *EntranceController) parseRequestParameters() map[string]interface{} {
 	body := c.Ctx.Request.Body
 	form := c.Ctx.Request.Form
 	multipart := c.Ctx.Request.MultipartForm
-	path := c.Ctx.Request.RequestURI
+	allpath := c.Ctx.Request.RequestURI
 	requestBody := c.Ctx.Input.RequestBody
+	index := strings.Index(allpath,"?")
+	path := ""
+	query := ""
+	if index < 0 {
+		path = allpath
+	} else {
+		path = allpath[0:index]
+		query = allpath[index:]
+	}
 
 	requestParams := make(map[string]interface{})
 
@@ -71,6 +86,7 @@ func (c *EntranceController) parseRequestParameters() map[string]interface{} {
 	requestParams["form"] = form
 	requestParams["multipart"] = multipart
 	requestParams["path"] = path
+	requestParams["query"] = query
 	requestParams["requestBody"] = requestBody
 
 	return requestParams

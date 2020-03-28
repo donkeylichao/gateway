@@ -1,63 +1,71 @@
 package http
 
 import (
-	"github.com/dghubble/sling"
+	"io/ioutil"
 	"net/http"
-	"fmt"
+	"errors"
+	"encoding/json"
+	"io"
+	"net/url"
+	"mime/multipart"
 )
 
-type Params struct {
-	Count int `url:"count,omitempty"`
-}
+func Request(requestParam map[string]interface{},matchRoute string) (map[string]interface{}, error) {
 
-// IssueService provides methods for creating and reading issues.
-type IssueService struct {
-	sling *sling.Sling
-}
-
-// Client is a tiny Github client
-type Client struct {
-	IssueService *IssueService
-	// other service endpoints...
-}
-
-type Issue struct {
-	//ID     int    `json:"id"`
-	//URL    string `json:"url"`
-	//Number int    `json:"number"`
-	//State  string `json:"state"`
-	//Title  string `json:"title"`
-	//Body   string `json:"body"`
-	Status int `json:"status"`
-	Data interface{} `json:"data"`
-	Message string `json:"message"`
-}
-
-
-type GithubError struct {
-	Message string `json:"message"`
-	Errors  []struct {
-		Resource string `json:"resource"`
-		Field    string `json:"field"`
-		Code     string `json:"code"`
-	} `json:"errors"`
-	DocumentationURL string `json:"documentation_url"`
-}
-
-func (e GithubError) Error() string {
-	return fmt.Sprintf("github: %v %+v %v", e.Message, e.Errors, e.DocumentationURL)
-}
-
-func Request(path string,param map[string]interface{}) ([]Issue, *http.Response, error) {
-
-	issues := new([]Issue)
-	githubError := new(GithubError)
-	resp, err := sling.New().Get(path).Receive(issues, githubError)
-
-	//fmt.Printf("%s", err)
-	//fmt.Printf("%s", issues)
-	if err == nil {
-		err = githubError
+	method := ""
+	query := ""
+	var body io.ReadCloser
+	header := http.Header{}
+	multipartData := &multipart.Form{}
+	form := url.Values{}
+	var err error
+	if v,ok := requestParam["method"];ok {
+		method = v.(string)
 	}
-	return *issues, resp, err
+	if v,ok := requestParam["query"];ok {
+		query = v.(string)
+	}
+	if v,ok := requestParam["header"];ok {
+		header = v.(http.Header)
+	}
+	if v,ok := requestParam["multipart"];ok {
+		multipartData = v.(*multipart.Form)
+	}
+	if v,ok := requestParam["body"];ok {
+		body = v.(io.ReadCloser)
+	}
+	if v,ok := requestParam["form"];ok {
+		form = v.(url.Values)
+	}
+
+	if method == "" || matchRoute == "" {
+		return nil, errors.New("request api error")
+	}
+
+	req, err := http.NewRequest(method, matchRoute + query, body)
+	if err != nil {
+		return nil, errors.New("request error")
+	}
+
+	req.Header = header
+	req.MultipartForm = multipartData
+	req.Form = form
+
+	// create http client and exec request
+	client := http.Client{}
+	reps, err := client.Do(req)
+	if err != nil {
+		return nil ,err
+	}
+
+	defer reps.Body.Close()
+
+	re, err := ioutil.ReadAll(reps.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	repData := map[string]interface{}{}
+	json.Unmarshal(re, &repData)
+	return repData, nil
 }

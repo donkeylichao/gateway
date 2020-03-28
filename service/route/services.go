@@ -13,7 +13,7 @@ import (
 /**
  获取当前请求匹配的转发设置
  */
-func GetGatewayService(requestParam map[string]interface{}) interface{} {
+func GetGatewayService(requestParam map[string]interface{}) string {
 	//获取当前请求路径数组
 	currentRoute := getCurrentRoute(requestParam)
 
@@ -25,7 +25,7 @@ func GetGatewayService(requestParam map[string]interface{}) interface{} {
 			return parseServicePath(requestParam["path"].(string), apiData[v.(string)])
 		}
 	}
-	return nil
+	return ""
 }
 
 /**
@@ -165,7 +165,7 @@ func combinations(combine string) interface{} {
 /**
  计算有参数的路由转发地址
  */
-func parseServicePath(path string, matchRoute interface{}) interface{} {
+func parseServicePath(path string, matchRoute interface{}) string {
 
 	//请求path
 	pathOrgin := strings.Trim(path, "/")
