@@ -5,57 +5,25 @@ import (
 	"net/http"
 	"errors"
 	"encoding/json"
-	"io"
-	"net/url"
 	"mime/multipart"
+	"bytes"
+	"io"
 )
 
-func Request(requestParam map[string]interface{},matchRoute string) (map[string]interface{}, error) {
+const CONTENT_TYPE_JSON = "application/json"
 
-	method := ""
-	query := ""
-	var body io.ReadCloser
-	header := http.Header{}
-	multipartData := &multipart.Form{}
-	form := url.Values{}
-	var err error
-	if v,ok := requestParam["method"];ok {
-		method = v.(string)
-	}
-	if v,ok := requestParam["query"];ok {
-		query = v.(string)
-	}
-	if v,ok := requestParam["header"];ok {
-		header = v.(http.Header)
-	}
-	if v,ok := requestParam["multipart"];ok {
-		multipartData = v.(*multipart.Form)
-	}
-	if v,ok := requestParam["body"];ok {
-		body = v.(io.ReadCloser)
-	}
-	if v,ok := requestParam["form"];ok {
-		form = v.(url.Values)
-	}
-
-	if method == "" || matchRoute == "" {
-		return nil, errors.New("request api error")
-	}
-
-	req, err := http.NewRequest(method, matchRoute + query, body)
+func Request(requestParam map[string]interface{}, matchRoute string) (map[string]interface{}, error) {
+	// get request
+	req, err := getParams(requestParam, matchRoute)
 	if err != nil {
-		return nil, errors.New("request error")
+		return nil, err
 	}
-
-	req.Header = header
-	req.MultipartForm = multipartData
-	req.Form = form
 
 	// create http client and exec request
 	client := http.Client{}
 	reps, err := client.Do(req)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	defer reps.Body.Close()
@@ -68,4 +36,81 @@ func Request(requestParam map[string]interface{},matchRoute string) (map[string]
 	repData := map[string]interface{}{}
 	json.Unmarshal(re, &repData)
 	return repData, nil
+}
+
+func getParams(requestParam map[string]interface{}, matchRoute string) (*http.Request, error) {
+
+	method := ""
+	query := ""
+	var body, requestContent io.Reader // json data
+	header := http.Header{}
+	multipartData := &multipart.Form{}
+
+	var err error
+	if v, ok := requestParam["method"]; ok {
+		method = v.(string)
+	}
+	if v, ok := requestParam["query"]; ok {
+		query = v.(string)
+	}
+	if v, ok := requestParam["header"]; ok {
+		header = v.(http.Header)
+	}
+	if v, ok := requestParam["multipart"]; ok {
+		multipartData = v.(*multipart.Form)
+	}
+	if v, ok := requestParam["body"]; ok {
+		body = v.(io.ReadCloser)
+	}
+
+	if method == "" || matchRoute == "" {
+		return nil, errors.New("request api error")
+	}
+
+	contentType, ok := header["Content-Type"]
+	if ok {
+		switch contentType[0] {
+		case CONTENT_TYPE_JSON:
+			requestContent = body
+		default:
+			body := &bytes.Buffer{}
+			writer := multipart.NewWriter(body)
+
+			// if has file
+			if multipartData.File != nil {
+
+				for k, v := range multipartData.File {
+
+					for index, fh := range v {
+						file, err := v[index].Open()
+						defer file.Close()
+
+						part, err := writer.CreateFormFile(k, fh.Filename)
+						if err != nil {
+							return nil, err
+						}
+						_, err = io.Copy(part, file)
+					}
+				}
+			}
+
+			for key, val := range multipartData.Value {
+				_ = writer.WriteField(key, val[0])
+			}
+			err = writer.Close()
+			if err != nil {
+				return nil, err
+			}
+			header["Content-Type"] = []string{writer.FormDataContentType()}
+			requestContent = body
+		}
+	}
+
+	req, err := http.NewRequest(method, matchRoute+query, requestContent)
+	if err != nil {
+		return nil, errors.New("request error")
+	}
+	req.Header = header
+
+	return req, err
 }

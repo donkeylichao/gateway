@@ -26,7 +26,6 @@ func (c *EntranceController) Entrance() {
 	requestParams := c.parseRequestParameters()
 
 	response := make(map[string]interface{})
-
 	if requestParams["method"] == "OPTIONS" {
 		response["status"] = 1
 		response["msg"] = "success"
@@ -39,7 +38,7 @@ func (c *EntranceController) Entrance() {
 			response["status"] = 0
 			response["msg"] = "请求路由不存在"
 		} else {
-			responseData, err := http.Request(requestParams,matchRoute)
+			responseData, err := http.Request(requestParams, matchRoute)
 			if err != nil {
 				response["status"] = 0
 				response["msg"] = err.Error()
