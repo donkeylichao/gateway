@@ -29,8 +29,12 @@ beego框架开发的网关
     - 密码 123456
 2. route配置
     - 路由redis缓存key名称 cache = routeCache
-    - 路由参数替换标志 parser_placeholder = [_stub_]
-    - - 例如访问地址为/v1/api/demo/3  api_alias配置/v1/api/demo/[_stub_] api_path配置/api/demo/[_stub_]
+    - 路由参数替换标志 parser_placeholder = [__stub__]
+    - - 例如
+    - - api_alias(网关请求地址) 配置 /v1/api/demo/[__stub__]
+    - - api_path(转发地址) 配置 /api/demo/[__stub__]
+    - - service_url(转发地址域名) 配置为 http://localhost:8080
+    - - 访问网关地址 http://localhost:8000/v1/api/demo/3 会转发到 http://localhost:8080/api/demo/3
 
 3. 后台登陆地址
     - http://localhost:8000/admin
