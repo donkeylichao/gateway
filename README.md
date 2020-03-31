@@ -32,3 +32,5 @@ beego框架开发的网关
     - 路由参数替换标志 parser_placeholder = [_stub_]
     - - 例如访问地址为/v1/api/demo/3  api_alias配置/v1/api/demo/[_stub_] api_path配置/api/demo/[_stub_]
 
+3. 后台登陆地址
+    - http://localhost:8000/admin
