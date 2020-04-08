@@ -8,7 +8,7 @@ import (
 type ServiceUrl struct {
 	Id          int           `valid:"-" json:"id"`
 	ServiceName string        `form:"service_name" valid:"required" json:"service_name"`
-	ServiceUrl  string        `form:"service_url" valid:"required"`
+	ServiceUrl  string        `form:"-" valid:"-"`
 }
 
 func init() {

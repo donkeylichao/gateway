@@ -8,6 +8,10 @@ import (
 	"encoding/json"
 	"strings"
 	"strconv"
+	"math/rand"
+	"gateway/service/http"
+	"wst/exceptions"
+	"github.com/pkg/errors"
 )
 
 /**
@@ -60,9 +64,11 @@ func getRouteConfig() map[string]interface{} {
 func getHandleApi(api []*models.ServiceApi, url map[int]string) map[string]interface{} {
 	data := make(map[string]interface{})
 	for _, a := range api {
+		urls := []string{}
+		json.Unmarshal([]byte(url[a.ServiceUrlId]), &urls)
 		formatA := make(map[string]interface{})
 		formatA["Method"] = a.Method
-		formatA["ServiceUrl"] = url[a.ServiceUrlId]
+		formatA["ServiceUrl"] = urls
 		formatA["ApiAlias"] = a.ApiAlias
 		formatA["ApiPath"] = a.ApiPath
 
@@ -199,6 +205,32 @@ func parseServicePath(path string, matchRoute interface{}) string {
 		returnPath += "/" + itemUrl
 	}
 
+	// 检查节点的可用性选择可用节点
+	serviceUrls := matchRoute.(map[string]interface{})["ServiceUrl"].([]interface{})
+
+	rand.Seed(time.Now().UnixNano())
+	var currentUrl string
+	for {
+		if len(serviceUrls) == 0 {
+			exceptions.Throw(errors.New("没有可用节点"))
+		} else if len(serviceUrls) == 1 {
+			currentUrl = serviceUrls[0].(string)
+			if http.CheckNode(currentUrl) {
+				break
+			} else {
+				serviceUrls = []interface{}{}
+			}
+		} else {
+			index := rand.Intn(len(serviceUrls) - 1)
+			currentUrl = serviceUrls[index].(string)
+			if http.CheckNode(currentUrl) {
+				break
+			} else {
+				serviceUrls = append(serviceUrls[:index], serviceUrls[index+1:]...)
+			}
+		}
+	}
+
 	//组装request请求转发的真实路径
-	return matchRoute.(map[string]interface{})["ServiceUrl"].(string) + returnPath
+	return  currentUrl + returnPath
 }

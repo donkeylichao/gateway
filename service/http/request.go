@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"bytes"
 	"io"
+	"time"
 )
 
 const CONTENT_TYPE_JSON = "application/json"
@@ -113,4 +114,16 @@ func getParams(requestParam map[string]interface{}, matchRoute string) (*http.Re
 	req.Header = header
 
 	return req, err
+}
+
+func CheckNode(node string) bool {
+	timeout := time.Duration(100 * time.Millisecond)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	_, err := client.Get(node)
+	if err != nil {
+		return false
+	}
+	return true
 }

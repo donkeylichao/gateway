@@ -34,17 +34,35 @@
 
         <div height="10px">&nbsp;</div>
 
+    {{if eq 0 .urlLength }}
         <div class="form-group">
-            <label class="col-sm-1 control-label no-padding-right">服务地址：</label>
+            <label class="col-sm-1 control-label no-padding-right">节点：</label>
             <div class="col-sm-11">
-                <input type="text" name="service_url" class="col-xs-10 col-sm-4" value="{{.url.ServiceUrl}}"/>
+                <input type="text" name="service_url" class="col-xs-10 col-sm-4" value=""/>
                 <span class="help-inline col-xs-12 col-sm-7">
-							<span class="middle" style="color:red">*必填*</span>
-						</span>
+                    <button class="btn btn-xs btn-danger add-box-btn" type="button">添加</button>
+                    <button class="btn btn-xs btn-info del-box-btn" type="button">删除</button>
+                </span>
             </div>
         </div>
 
-        <div height="10px">&nbsp;</div>
+        <div height="10px" class="padding-box">&nbsp;</div>
+    {{else}}
+    {{range .urls}}
+        <div class="form-group">
+            <label class="col-sm-1 control-label no-padding-right">节点：</label>
+            <div class="col-sm-11">
+                <input type="text" name="service_url" class="col-xs-10 col-sm-4" value="{{.}}"/>
+                <span class="help-inline col-xs-12 col-sm-7">
+                            <button class="btn btn-xs btn-danger add-box-btn" type="button">添加</button>
+                            <button class="btn btn-xs btn-info del-box-btn" type="button">删除</button>
+                        </span>
+            </div>
+        </div>
+
+        <div height="10px" class="padding-box">&nbsp;</div>
+    {{end}}
+    {{end}}
 
         <div class="col-md-offset-1 col-md-9">
             <button class="btn btn-info" type="submit">
@@ -59,3 +77,37 @@
             </button>
         </div>
     </form>
+
+    <script>
+        $(function(){
+            $(document).on("click", ".add-box-btn", function () {
+                var addHtml = `<div class="form-group">
+            <label class="col-sm-1 control-label no-padding-right">节点：</label>
+            <div class="col-sm-11">
+                <input type="text" name="service_url" class="col-xs-10 col-sm-4" value=""/>
+                <span class="help-inline col-xs-12 col-sm-7">
+                <button class="btn btn-xs btn-danger add-box-btn" type="button">添加</button>
+                <button class="btn btn-xs btn-info del-box-btn" type="button">删除</button>
+            </span>
+            </div>
+        </div>
+
+        <div height="10px" class="padding-box">&nbsp;</div>`
+                var current = $(this);
+                current.closest(".form-group").next(".padding-box").after(addHtml);
+                console.log(current)
+
+            });
+
+            $(document).on("click", ".del-box-btn", function () {
+                var current = $(this);
+
+                console.log($("form").find(".form-group"));
+                if ($("form").find(".form-group").length == 2) {
+                    return
+                }
+                current.closest(".form-group").next(".padding-box").remove();
+                current.closest(".form-group").remove();
+            });
+        })
+    </script>

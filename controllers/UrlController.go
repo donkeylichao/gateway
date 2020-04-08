@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/asaskevich/govalidator"
 	"github.com/astaxie/beego/orm"
+	"encoding/json"
 )
 
 type UrlController struct {
@@ -31,7 +32,6 @@ func (c *UrlController) List() {
 	c.Data["pageTitle"] = "url列表"
 	c.Data["pageBar"] = help.NewPager(page, int(count), c.pageSize, beego.URLFor("UrlController.List"), true).ToString()
 	c.display()
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 }
 
 /**
@@ -40,16 +40,32 @@ func (c *UrlController) List() {
 // @router /create [get,post]
 func (c *UrlController) Create() {
 	var url models.ServiceUrl
-
+	filterUrls := []string{}
 	if c.IsPost() {
+		urls := c.GetStrings("service_url")
+		for _,v := range urls {
+			if v != "" {
+				filterUrls = append(filterUrls,v)
+			}
+		}
+
 		if err := c.ParseForm(&url); err == nil {
 			if _, err := govalidator.ValidateStruct(url); err == nil {
-				_, err := url.Create()
-				if err == nil {
-					c.SetSession("success", "添加成功")
-					c.redirect(beego.URLFor("UrlController.List"))
+
+				if len(filterUrls) == 0 {
+					c.setFlash("error", "节点不能为空")
+
+				} else {
+					serviceUrl,_ := json.Marshal(filterUrls)
+					url.ServiceUrl = string(serviceUrl)
+					_, err := url.Create()
+					if err == nil {
+						c.SetSession("success", "添加成功")
+						help.Redis.Delete(beego.AppConfig.String("route.cache"))
+						c.redirect(beego.URLFor("UrlController.List"))
+					}
+					c.setFlash("error", err.Error())
 				}
-				c.setFlash("error", err.Error())
 			} else {
 				c.setFlash("notice", err.Error())
 			}
@@ -58,10 +74,11 @@ func (c *UrlController) Create() {
 		}
 	}
 
+	c.Data["urls"] = filterUrls
+	c.Data["urlLength"] = len(filterUrls)
 	c.Data["url"] = url
 	c.Data["pageTitle"] = "添加URL"
 	c.display()
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 }
 
 /**
@@ -82,9 +99,9 @@ func (c *UrlController) Delete() {
 	}
 	if _, err := url.Delete(); err == nil {
 		c.SetSession("success", "删除成功")
+		help.Redis.Delete(beego.AppConfig.String("route.cache"))
 		c.redirect(beego.URLFor("UrlController.List"))
 	}
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 	c.SetSession("error", "删除失败")
 	c.redirect(beego.URLFor("UrlController.List"))
 }
@@ -95,22 +112,39 @@ func (c *UrlController) Delete() {
 // @router /update [get,post]
 func (c *UrlController) Update() {
 	var url models.ServiceUrl
+	filterUrls := []string{}
 	id,_ := c.GetInt("id")
 	if _,err := url.FindById(id);err != nil {
 		c.SetSession("error","修改数据不存在")
 		c.redirect(beego.URLFor("UrlController.List"))
 	}
-
+	json.Unmarshal([]byte(url.ServiceUrl),&filterUrls)
 	if c.IsPost() {
+
+		urls := c.GetStrings("service_url")
+		filterUrls = filterUrls[len(filterUrls):]
+		for _,v := range urls {
+			if v != "" {
+				filterUrls = append(filterUrls,v)
+			}
+		}
+
 		if err := c.ParseForm(&url);err == nil {
 			if _,err := govalidator.ValidateStruct(url);err == nil {
-				_,err := url.Update()
-				if err == nil {
-					c.SetSession("success","修改成功")
-					help.Redis.Delete(beego.AppConfig.String("route::cache"))
-					c.redirect(beego.URLFor("UrlController.List"))
+				if len(filterUrls) == 0 {
+					c.setFlash("error", "节点不能为空")
+
+				} else {
+					serviceUrl,_ := json.Marshal(filterUrls)
+					url.ServiceUrl = string(serviceUrl)
+					_, err := url.Update()
+					if err == nil {
+						c.SetSession("success", "修改成功")
+						help.Redis.Delete(beego.AppConfig.String("route::cache"))
+						c.redirect(beego.URLFor("UrlController.List"))
+					}
+					c.setFlash("error", err.Error())
 				}
-				c.setFlash("error",err.Error())
 			} else {
 				c.setFlash("notice",err.Error())
 			}
@@ -119,8 +153,9 @@ func (c *UrlController) Update() {
 		}
 	}
 
+	c.Data["urls"] = filterUrls
+	c.Data["urlLength"] = len(filterUrls)
 	c.Data["url"] = url
 	c.Data["pageTitle"] = "url修改"
 	c.display()
-	help.Redis.Delete(beego.AppConfig.String("route.cache"))
 }
