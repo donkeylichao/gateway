@@ -7,6 +7,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/astaxie/beego/orm"
 	"encoding/json"
+	"gateway/repositories"
 )
 
 type UrlController struct {
@@ -157,5 +158,14 @@ func (c *UrlController) Update() {
 	c.Data["urlLength"] = len(filterUrls)
 	c.Data["url"] = url
 	c.Data["pageTitle"] = "url修改"
+	c.display()
+}
+
+// @router /status [get]
+func (c *UrlController) Status() {
+	rep := repositories.NewUrlRepository()
+	data := rep.GetStatus()
+	c.Data["data"] = data
+	c.Data["pageTitle"] = "节点状态"
 	c.display()
 }
